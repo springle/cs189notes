@@ -184,3 +184,133 @@ distributions, uniform variance, and uniform priors.
 
 ** Maximum Likelihood Estimation
 
+Consider an example problem where we are flipping a biased coin. After
+10 flips, we observe 8 heads and 2 tails. What is the most likely
+value of $p$ (the probability that the coin lands on heads for any
+given flip)?
+
+We know that the number of heads that we observe follows a Binomial
+Distribution: $X \sim B(n, p)$.
+
+\[ P(X=x) = {n \choose x} p^x (1-p)^{n-x} \]
+
+In our example, we have \[ P(X=8) = 45p^8(1-p)^2 \].
+
+Call the above function $\mathcal{L}(p) = 45p^8(1-p)^2$ the
+_likelihood function_. Note that $\mathcal{L}$ is a function of
+distribution parameter(s).
+
+The _Maximum Likelihood Estimation (MLE)_ method allows us to estimate
+the parameters of a statistical model by picking the parameters which
+maximize $\mathcal{L}$. Note that MLE is one method among a larger
+group of _density estimators_, which are all methods of estimating a
+PDF.
+
+For maximum formality, let's frame this as an optimization problem.
+
+\[ max_p \{ \mathcal{L}(p) \}\]
+
+#+ATTR_LATEX: :height 100
+[[./images/MLE.png]]
+
+To make sure we have the correct answer, let's use calculus and set
+the derivative equal $\frac{\delta\mathcal{L}}{\delta p}$ to zero.
+
+\begin{align*}
+\frac{\delta\mathcal{L}}{\delta p}
+=& \frac{\delta}{\delta p} 45p^8(1-p)^2 \\
+\frac{\delta}{\delta p} 45p^8(1-p)^2 =& 0 \\
+4(1-p)-p =& 0 \\
+p =& 0.8
+\end{align*}
+
+Everything about the above coin example also applies to generic, prior
+probability problems. Say we had 10 samples and 8 of them were in
+class $C$. Then, for the same reasons as before, we know $\pi_C =
+0.8$.
+
+The coin example is simple, because we are estimating a single
+parameter ($p$). Let's look at a more interesting example, where we
+want to model a Gaussian distribution with multiple parameters ($\mu$
+and $\sigma^2$).
+
+*** MLE for Gaussians
+
+Given sample points $X_1$, $X_2$, ..., $X_n$, find the best-fit
+Gaussian. In other words, find the Gaussian which would be /most
+likely/ to produce $X_1$, $X_2$, ..., $X_n$. This seems a bit
+strange at first, since the probability of producing that /exact/ set
+of points will always be zero for any Gaussian; however, it turns out
+we are still able to perform meaningful calculations in this
+setting. For now, think of the problem statement as: "find the
+Gaussian mostly likely to produce points /similar/ to $X_1$, $X_2$,
+..., $X_n$". The probability of generating these $n$ points is zero,
+but we will define the likelihood of generating these $n$ points to be
+the product of their $p$ values from the PDF.
+
+\[
+\mathcal{L}(\mu , \sigma^2 | X_1 , ... , X_n) =
+\prod_{i=1}^n X_i
+\]
+
+Notice that \mathcal{L} is a giant product, which can be very
+difficult to differentiate to find its maximum. Instead, we can
+differentiate the _log likelihood_. Since the logorithm is
+monotomically increasing, it will have the same maximum value. Define
+$l$ to be the log likelihood: $l = ln(\mathcal{L})$.
+
+\begin{align*}
+l(\mu, \sigma^2 | X_1, ..., X_n)
+=& ln(\prod_{i=1}^n X_i) \\
+=& \sum_{i=1}^n ln(P(X_i)) \\
+=& \sum_{i=1}^n (-\frac{\|X_i - \mu \|^2}{2\sigma^2}
+                 -dln(\sqrt{2\pi})
+                 -dln(\sigma)
+                )
+\end{align*}
+
+We want to set $\nabla_\mu l=0$ and $\frac{\delta
+l}{\delta\sigma}=0$. The point which satisfies these equations will be
+a critical point of the log likelihood, allowing us to find its
+maximum with respect to $\mu$ and $\sigma^2$.
+
+\begin{align*}
+\nabla_\mu l =& \sum_{i=1}^n \frac{X_i - \mu}{\sigma_2} \\
+\sum_{i=1}^n \frac{X_i - \mu}{\sigma_2} =& 0 \\
+\hat{\mu} =& \frac{1}{n} \sum_{i=1}^n X_i
+\end{align*}
+
+Note that the value of $\hat{\mu}$ which maximizes $l$ is simply the
+sample mean, which should not be surprising. Now, let's do the same
+thing for $\hat{\sigma^2}$.
+
+\begin{align*}
+\frac{\delta l}{\delta \sigma}
+=& \sum_{i=1}^n \frac{\| X_i - \mu \|^2 - d\sigma^2}{\sigma^3} \\
+\frac{\| X_i - \mu \|^2 - d\sigma^2}{\sigma^3} =& 0 \\
+\hat{\sigma^2} =& \frac{1}{dn}\sum_{i=1}^n \| X_i - \mu \|^2
+\end{align*}
+
+We don't know $\mu$ in the above equation, so we substitute
+$\hat{\mu}$ instead. These calculations confirm something that may
+have seemed obvious. To estimate the mean and variance for an unknown
+Gaussian which describes class $C$, we use the mean and variance of
+the sample points from class $C$. Note that in the limit where the
+number of sample points goes to infinity, these values will converge
+on the correct mean and variance.
+
+For QDA, we will estimate the _conditional mean_ $\hat{\mu_C}$ and the
+_conditional variance_ $\hat{\sigma^2_C}$ of each class $C$
+/separately/. We estimate the priors according to the "coin flip test"
+described at the beginning of this section. We call $\hat{\mu_C}$ and
+$\hat{\sigma^2_C}$ conditional, because they are conditioned on being
+in class $C$: $P(X=x|Y=C)$.
+
+For LDA, we use the same methods as QDA for means and priors; however,
+we use a single variance (called the _pooled variance_) for all of the
+classes:
+
+\[
+\hat{\sigma^2} = \frac{1}{dn}\sum_C
+\sum_{\{ i | y_i=C \}} \| X_i - \hat{\mu_c} \|^2
+\]
