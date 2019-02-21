@@ -171,3 +171,16 @@ transformed logistic function. It has simply been extended through
 another dimension. In a higher-dimensional space, the posterior
 probability would behave the same way: extending "flatly" through each
 new dimension, remaining linear.
+
+Below is an example of a multi-class LDA classifier, in the special
+case where each class has a uniform prior. As shown in the image
+below, the closest mean defines each region of classification. This
+classifier turns out to be equivalent to the _centroid method_, which
+seems naive yet works well for data under assumptions of Gaussian
+distributions, uniform variance, and uniform priors.
+
+#+ATTR_LATEX: :height 100
+[[./images/multilda.png]]
+
+** Maximum Likelihood Estimation
+
