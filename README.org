@@ -12,7 +12,7 @@ e^{-\frac{\| x - \mu \|^2}{2\sigma^2}}
 
 Given a particular point $x$, the Bayes decision rule $r^*(x)$ will
 return the class $C$ that maximizes the posterior probability
-$P(X=X|Y=C)\pi_c$, where $\pi_c$ is the prior probability of drawing a
+$P(X=x|Y=C)\pi_c$, where $\pi_c$ is the prior probability of drawing a
 sample from class $c$. This Bayes decision rule is not special for
 GDA, except that we model the posterior probability using a Gaussian.
 
@@ -22,8 +22,8 @@ derivative easier, we take the logorithm of the likelihood function
 before attempting to derive it. Note that $ln(\omega)$ is monotomically
 increasing for $\omega > 0$, so maximizing $ln(\omega)$ is equivalent
 to maximizing $\omega$. To further our goal of taking an easy
-derivative, let's also rewrite the PDF and prior in a slightly
-different form.
+derivative, let's also rewrite the posterior probability for each
+class in a slightly different form.
 
 \begin{align*}
 Q_C(x) =& ln((\sqrt{2\pi})^d P(X=x) \pi_C) \\
@@ -314,3 +314,221 @@ classes:
 \hat{\sigma^2} = \frac{1}{dn}\sum_C
 \sum_{\{ i | y_i=C \}} \| X_i - \hat{\mu_c} \|^2
 \]
+** Eigenvectors
+
+Given square matrix $A$, if $Av=\lambda v$ for some vector $v \neq 0$
+and some scalar $\lambda$, then $v$ is an _eigenvector_ of $A$, and
+$\lambda$ is the _eigenvalue_ of $A$ associated with $v$.
+
+#+ATTR_LATEX: :height 100
+[[./images/eigenvectors.jpg]]
+
+#+ATTR_LATEX: :height 100
+[[./images/neg_eigenvalue.jpg]]
+
+THM1: If $v$ and $\lambda$ are an eigenvalue and eigenvector pair of $A$,
+then $v$ is an eigenvector of $A^k$ with eigenvector $\lambda^k$. The
+proof is simply: $A^2v=A(\lambda v) = \lambda^2v$.
+
+THM2: If $A$ is invertible, then $v$ is an eigenvector of $A^{-1}$ with an
+eigenvalue of $\frac{1}{\lambda}$. The proof is simply:
+$A^{-1}v=\frac{1}{\lambda}A^{-1}Av=\frac{1}{\lambda}v$. Another view
+of the proof is shown below.
+
+\begin{align*}
+Av =& \lambda v \\
+A^{-1}Av =& A^{-1} \lambda v \\
+v =& A^{-1} \lambda v \\
+\frac{1}{\lambda}v =& A^{-1}v
+\end{align*}
+
+Now, let's take a look at the _Spectral Theorem_, which states that
+every real, symmetric $n*n$ matrix has real eigenvalues and $n$
+eigenvectors which are all mutually orthogonal ($\forall i
+\neq j$, $v_i \cdot v_j = 0$). We can use these eigenvectors as a
+basis for $R^n$, since they are linearly independent.
+
+*** Quadratic Forms
+
+Let's consider two functions: $\| z \|^2 = z \cdot z = z^T z$ and
+$\|Ax\|^2 = x \cdot (A^2x) = x^T A^2 x$. The first function is
+quadratic, isotropic, and its isosurfaces are spheres. The second
+function is the _quadratic form_ of the matrix $A^2$ (assuming $A$ is
+symetric); it is anisotropic, and the isosurfaces are ellipsoids.
+
+#+ATTR_LATEX: :height 100
+[[./images/xzspace.jpg]]
+
+As we can see from the plots above, $\|Ax\|^2=1$ is an ellipsoid with
+axes $v_1, v_2, ..., v_n$ and radii $\frac{1}{\lambda_1},
+\frac{1}{\lambda_2},...,\frac{1}{\lambda_n}$. This is true, because if
+$v_i$ has length $\frac{1}{\lambda_i}$, then $\|Av_i\|^2 = \|
+\lambda_i v_i \|^2 = 1 \implies v_i$ lies on the ellipsoid. One
+consequence of this interpretation is that bigger eigenvalue
+\leftrightarrow steeper hill \leftrightarrow shorter ellipsoid
+radius. In the special case where $A$ is diagonal \leftrightarrow
+eigenvectors are coordinate axis \leftrightarrow ellipsoids are
+_axis-aligned_.
+
+A square matrix B is _positive definite_ if $w^TBw>0$ for all $w \neq
+0$ \leftrightarrow all eigenvalues are positive. It is _positive
+semidefinite_ if $w^TBw \geq 0$ for all $w$ \leftrightarrow all
+eigenvalues are non-negative. It is _indefinite_ if it has at least
+one positive eigenvalue and at least one negative eigenvalue. It is
+_invertible_ if it has no zero eigenvalues. 
+
+#+ATTR_LATEX: :height 100
+[[./images/definite.jpg]]
+
+We want to know what this information tells us about the quadratic
+form $x^TA^2x$. We know that $A^2$ is positive semi-definite (maybe
+positive definite) since all of the eigenvalues were squared.
+
+Note that if our matrix has a zero eigenvalue, the radius of one of
+the ellipsoids in $x$ space will go to infinity ($lim_{x \to 0}
+\frac{1}{x}$). Therefore, the isocontours of $x$ space will form
+cylinders instead of ellipsoids. Another interpretation of a zero
+eigenvalue states that you have a direction of the transformation in
+which nothing changes. After projecting this missing direction out,
+the remaining directions (eigenvectors with non-zero eigenvalues) are
+still ellipsoids.
+
+#+ATTR_LATEX: :height 100
+[[./images/zeroeigenval.jpg]]
+
+*** Building a Quadratic
+
+When learning about eigenvalues and eigenvectors, it is common to
+learn how to find the eigenvalues and eigenvectors for a given
+matrix. However, it can often be more beneficial to learn how to work
+in the other direction: given a set of eigenvalues (assume
+orthogonality) and eigenvectors, how can we find a matrix that has
+them? In terms of the previous section, we know the ellipsoids, their
+directions, and their radii for the isocontours.
+
+First, choose $n$ mutually orthogonal unit vectors $v_1,...,v_n$. Also
+define an $n*n$ matrix containing these unit vectors:
+
+\[ V= \begin{bmatrix}
+v_1 \\ v_2 \\ \vdots \\ v_n
+\end{bmatrix} \] 
+
+We know that $V^TV=I$, because the off-diagonal entries are
+orthogonal with zero-valued dot-products and the on-diagonal entries
+are unit vectors with one-valued dot-products. With this fact in mind,
+we can see that $V^T=V^{-1}$, since $V^{-1}V=1$. One more useful
+permutation of these observations gives us $VV^T=1$. Any matrix with
+these properties (summarized by $VV^T=1$) is called an _orthonormal
+matrix_ which acts like a rotation/reflection and does /not/ change
+the length of the vectors it transforms.
+
+Next, choose some inverse radii $\lambda_i$. Also define an $n*n$
+matrix containing these inverse radii along the diagonal:
+
+\[ \Lambda = \begin{bmatrix}
+\lambda_1 & 0 & \dots & 0 \\
+0 & \lambda_2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \lambda_n
+\end{bmatrix} \]
+
+By the definition of eigenvectors, we can write:
+
+\begin{align*}
+AV =& V\Lambda \\
+AVV^T =& V\LambdaV^T \\
+A =& V \Lambda V^T && \text{because $V$ is orthonormal} \\
+=& \sum_{i=1}^n \lambda_i v_i v_i^T
+&& \text{where $v_i v_i^T$ is an outer product matrix with rank 1}.
+\end{align*}
+
+This method of rewriting $A$ as the multiplication of other matricies
+is called _matrix factorization_, and this specific method is the
+_eigendecomposition_ of $A$. You can think of $\Lambda$ as the
+_diagonalized_ version of $A$. You can also thing of $V^T$ as the
+transformation that rotates the ellipsoid of isocontours in $x$ space
+to be axis-aligned.
+
+Observe that $A^2$ becomes $V\Lambda V^TV\Lambda V^T$ which is the
+same as $V\Lambda^2 V^T$. This quick proof shows that squaring a
+matrix keeps the same eigenvectors as the original matrix, but squares
+the eigenvalues (since squaring a diagonal matrix simply squares each
+of the values along the diagonal).
+
+Given a symmetric Positive Semi-Definite (PSD) matrix $M$, we can find
+a _symmetric square root_ $A=\sqrt{M}$. We simply take the square
+roots of $M$'s eigenvalues, then construct $A$ from $M$'s eigenvectors
+and $\Lambda$ with the square root of $M$'s eigenvalues.
+
+** Anisotropic Gaussians
+
+In the past, we have only considered Gaussians with the same variance
+in each direction. Now, we will take a look at Gaussians with
+different variances in different directions.
+
+\[ X \sim N(\mu, \Sigma) \]
+\[ P(X=x) = 
+\frac{1}{(\sqrt{2\pi})^d \sqrt{|\Sigma|}}
+e^{-\frac{1}{2} (x-\mu)^T \Sigma^{-1} (x-\mu)} \]
+
+Recall that $X$ and $\mu$ are $d$ dimensional vectors and $\Sigma$ is
+a $d*d$ PSD matrix. Also note that $|\Sigma|$ refers to the
+determinant of $\Sigma$. We call $\Sigma$ the  _covariance matrix_,
+and its inverse $\Sigma^{-1}$ is the equally important $d*d$ PSD
+_precision matrix_. This PDF can be a bit intimidating, so let's break
+it apart into sections.
+
+\[ P(X=x) = n(q(x)) \]
+\[ q(x) = (x-\mu)^T \Sigma^{-1} (x-\mu) \]
+\[ n(x) = \text{univariate Gaussian PDF} \]
+
+The quadratic function $q(x)$ maps $R^d \to R$. The exponential
+function $n$ maps from $R \to R$. We can interpret $q(x)$ as the
+_squared distance_ from $\frac{x}{\sqrt{\Sigma}}$ to
+$\frac{\mu}{\sqrt{\Sigma}}$. Consider the _metric_ (a warped distance
+function) below:
+
+\begin{align*}
+d(x, \mu)
+=& |\frac{x}{\sqrt{\Sigma}} - \frac{\mu}{\sqrt{\Sigma}}| \\
+=& \sqrt{(x-\mu)^T \Sigma^{-1} (x-\mu)} \\ 
+=& \sqrt{q(x)}
+\end{align*}
+
+There is a general principle that mapping reals to reals ($R \to R$),
+isosurfaces are maintained with potentially different isovalues and
+potentially some overlapping.
+
+#+ATTR_LATEX: :height 200
+[[./images/multivargauss.jpg]]
+
+Define the _covariance_ between random variables $R$ and $S$ (vectors
+or scalars) be
+
+\begin{align*}
+Cov(R, S)
+=& E[(R-E[R])(S-E[S])^T] \\
+=& E[RS^T] - \mu_R \mu_S^T \\
+Var(R) =& Cov(R, R)
+\end{align*}
+
+If $R$ happens to be a vector, then $Cov(R,R)$ will be a matrix called
+the _covariance matrix_ for $R$.
+
+\[ Var(R) = \begin{bmatrix}
+Var(R_1) & Cov(R_1, R_2) & \dots & Cov(R_1, R_d) \\
+Cov(R_2, R_1) & Var(R_2) & \dots & Cov(R_2, R_d) \\
+\vdots & \vdots & \ddots & \vdots \\
+Cov(R_d, R_1) & Cov(R_d, R_2) & \dots & Var(R_d)
+\end{bmatrix}
+\]
+
+For a Gaussian $R \sim N(\mu, \Sigma)$, one can prove that $Var(R) =
+\Sigma$. If $R_i$ and $R_j$ are independent $\implies Cov(R_i, R_j) =
+0$. If $R_i$ and $R_j$ are two features of a multivariate normal
+distribution with $Cov(R_i, R_j) = 0 \implies$ $R_i$ and $R_j$ are
+independent. If all of the features are pairwise independent, then
+$Var(R)$ is a diagonal matrix. If $Var(R)$ is diagonal and $R$ is a
+multivariate normal distribution, then you have an axis-aligned
+Gaussian, and the squared radii are on the diagonal of $\Sigma =
+Var(R)$, and $P(X=x) = \prod_{i=1}^n P(X_i)$.
